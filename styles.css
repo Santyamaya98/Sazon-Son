@@ -33,7 +33,19 @@
             color: #2d8659;
         }
 
- 
+     .ImageContainer {
+        width: auto;
+        display: flex;
+        justify-content: center;        
+    }
+    
+    .FoodImages {
+        width: 1080px;
+        height: 720px;
+        object-fit: cover;
+        margin: 0px;
+        padding: 0px;
+        }
 
 @media (min-width: 768px) and (max-width: 1024px) {
     body {
