@@ -1,0 +1,8 @@
+Django==4.2.7
+djangorestframework==3.14.0
+django-cors-headers==4.3.0
+Pillow==10.1.0
+python-decouple==3.8
+reportlab==4.0.7
+pycups==2.0.1  # For CUPS printing
+python-escpos==3.0  # For thermal printers (optional)

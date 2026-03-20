@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAZON & SON - Sistema de Pedidos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        
+        .menu-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .cart-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .category-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .category-tab {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .category-tab:hover {
+            background: #e0e0e0;
+        }
+        
+        .category-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        
+        .menu-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .menu-item-info {
+            flex: 1;
+        }
+        
+        .menu-item-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .menu-item-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .menu-item-price {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .add-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .add-button:hover {
+            transform: scale(1.05);
+        }
+        
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .quantity-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .cart-total {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .order-form {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .submit-order {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .submit-order:hover {
+            transform: scale(1.02);
+        }
+        
+        .submit-order:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .empty-cart {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .cart-section {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                border-radius: 15px 15px 0 0;
+                max-height: 50vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SAZON & SON Cocina-Bar</h1>
+            <p>Sistema de Pedidos</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="menu-section">
+                <div class="category-tabs" id="categoryTabs">
+                    <!-- Categories will be loaded here -->
+                </div>
+                
+                <div id="menuItems">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Cargando menú...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="cart-section">
+                <h2>Tu Pedido</h2>
+                
+                <div id="cartItems">
+                    <div class="empty-cart">
+                        <p>Tu carrito está vacío</p>
+                        <p>Añade items del menú</p>
+                    </div>
+                </div>
+                
+                <div id="cartSummary" style="display: none;">
+                    <div class="cart-total">
+                        Total: €<span id="totalAmount">0.00</span>
+                    </div>
+                    
+                    <div class="order-form">
+                        <div class="form-group">
+                            <label for="tableNumber">Número de Mesa</label>
+                            <input type="text" id="tableNumber" placeholder="Ej: 5">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="customerName">Nombre (Opcional)</label>
+                            <input type="text" id="customerName" placeholder="Tu nombre">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="customerPhone">Teléfono (Opcional)</label>
+                            <input type="tel" id="customerPhone" placeholder="Tu teléfono">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="orderNotes">Notas del Pedido</label>
+                            <textarea id="orderNotes" rows="3" placeholder="Alergias, preferencias, etc."></textarea>
+                        </div>
+                        
+                        <button class="submit-order" onclick="submitOrder()">
+                            Enviar Pedido
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = window.location.origin + '/api';
+        
+        // State
+        let categories = [];
+        let menuItems = [];
+        let cart = {};
+        let activeCategory = null;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCategories();
+            loadMenuItems();
+        });
+        
+        // Load categories
+        async function loadCategories() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/categories/`);
+                categories = await response.json();
+                renderCategories();
+            } catch (error) {
+                console.error('Error loading categories:', error);
+            }
+        }
+        
+        // Load menu items
+        async function loadMenuItems() {
+            try {
+                const url = activeCategory 
+                    ? `${API_BASE_URL}/menu-items/?category_slug=${activeCategory}`
+                    : `${API_BASE_URL}/menu-items/by_category/`;
+                    
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (activeCategory) {
+                    menuItems = data.results || data;
+                    renderMenuItems();
+                } else {
+                    renderMenuItemsByCategory(data);
+                }
+            } catch (error) {
+                console.error('Error loading menu items:', error);
+                document.getElementById('menuItems').innerHTML = '<p>Error al cargar el menú</p>';
+            }
+        }
+        
+        // Render categories
+        function renderCategories() {
+            const container = document.getElementById('categoryTabs');
+            container.innerHTML = `
+                <button class="category-tab ${!activeCategory ? 'active' : ''}" 
+                        onclick="filterByCategory(null)">
+                    Todos
+                </button>
+                ${categories.map(cat => `
+                    <button class="category-tab ${activeCategory === cat.slug ? 'active' : ''}" 
+                            onclick="filterByCategory('${cat.slug}')">
+                        ${cat.name}
+                    </button>
+                `).join('')}
+            `;
+        }
+        
+        // Filter by category
+        function filterByCategory(categorySlug) {
+            activeCategory = categorySlug;
+            renderCategories();
+            loadMenuItems();
+        }
+        
+        // Render menu items
+        function renderMenuItems() {
+            const container = document.getElementById('menuItems');
+            
+            if (menuItems.length === 0) {
+                container.innerHTML = '<p>No hay items disponibles</p>';
+                return;
+            }
+            
+            container.innerHTML = menuItems.map(item => `
+                <div class="menu-item">
+                    <div class="menu-item-info">
+                        <div class="menu-item-name">${item.name}</div>
+                        ${item.description ? `<div class="menu-item-description">${item.description}</div>` : ''}
+                        <div class="menu-item-price">€${parseFloat(item.price).toFixed(2)}</div>
+                    </div>
+                    <button class="add-button" onclick="addToCart(${item.id}, '${item.name}', ${item.price})">
+                        Añadir
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        // Render menu items grouped by category
+        function renderMenuItemsByCategory(data) {
+            const container = document.getElementById('menuItems');
+            
+            if (data.length === 0) {
+                container.innerHTML = '<p>No hay items disponibles</p>';
+                return;
+            }
+            
+            container.innerHTML = data.map(group => `
+                <div class="category-section">
+                    <h3>${group.category.name}</h3>
+                    ${group.items.map(item => `
+                        <div class="menu-item">
+                            <div class="menu-item-info">
+                                <div class="menu-item-name">${item.name}</div>
+                                ${item.description ? `<div class="menu-item-description">${item.description}</div>` : ''}
+                                <div class="menu-item-price">€${parseFloat(item.price).toFixed(2)}</div>
+                            </div>
+                            <button class="add-button" onclick="addToCart(${item.id}, '${item.name}', ${item.price})">
+                                Añadir
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+        
+        // Add to cart
+        function addToCart(itemId, itemName, itemPrice) {
+            if (!cart[itemId]) {
+                cart[itemId] = {
+                    id: itemId,
+                    name: itemName,
+                    price: parseFloat(itemPrice),
+                    quantity: 0
+                };
+            }
+            cart[itemId].quantity++;
+            updateCart();
+        }
+        
+        // Update quantity
+        function updateQuantity(itemId, delta) {
+            if (cart[itemId]) {
+                cart[itemId].quantity += delta;
+                if (cart[itemId].quantity <= 0) {
+                    delete cart[itemId];
+                }
+                updateCart();
+            }
+        }
+        
+        // Remove from cart
+        function removeFromCart(itemId) {
+            delete cart[itemId];
+            updateCart();
+        }
+        
+        // Update cart display
+        function updateCart() {
+            const container = document.getElementById('cartItems');
+            const summary = document.getElementById('cartSummary');
+            const cartItemsArray = Object.values(cart);
+            
+            if (cartItemsArray.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-cart">
+                        <p>Tu carrito está vacío</p>
+                        <p>Añade items del menú</p>
+                    </div>
+                `;
+                summary.style.display = 'none';
+            } else {
+                container.innerHTML = cartItemsArray.map(item => `
+                    <div class="cart-item">
+                        <div>
+                            <div>${item.name}</div>
+                            <div style="color: #666; font-size: 14px;">
+                                €${item.price.toFixed(2)} x ${item.quantity}
+                            </div>
+                        </div>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn" onclick="updateQuantity(${item.id}, -1)">-</button>
+                            <span>${item.quantity}</span>
+                            <button class="quantity-btn" onclick="updateQuantity(${item.id}, 1)">+</button>
+                            <button class="quantity-btn" onclick="removeFromCart(${item.id})" style="background: #ff4444; color: white; border: none;">×</button>
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Calculate total
+                const total = cartItemsArray.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                document.getElementById('totalAmount').textContent = total.toFixed(2);
+                summary.style.display = 'block';
+            }
+        }
+        
+        // Submit order
+        async function submitOrder() {
+            const cartItemsArray = Object.values(cart);
+            
+            if (cartItemsArray.length === 0) {
+                alert('El carrito está vacío');
+                return;
+            }
+            
+            const orderData = {
+                table_number: document.getElementById('tableNumber').value,
+                customer_name: document.getElementById('customerName').value,
+                customer_phone: document.getElementById('customerPhone').value,
+                notes: document.getElementById('orderNotes').value,
+                items: cartItemsArray.map(item => ({
+                    menu_item_id: item.id,
+                    quantity: item.quantity,
+                    notes: ''
+                }))
+            };
+            
+            // Disable submit button
+            const submitBtn = document.querySelector('.submit-order');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Enviando...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/orders/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(orderData)
+                });
+                
+                if (response.ok) {
+                    const order = await response.json();
+                    alert(`¡Pedido #${order.order_number} enviado exitosamente!`);
+                    
+                    // Clear cart
+                    cart = {};
+                    updateCart();
+                    
+                    // Clear form
+                    document.getElementById('tableNumber').value = '';
+                    document.getElementById('customerName').value = '';
+                    document.getElementById('customerPhone').value = '';
+                    document.getElementById('orderNotes').value = '';
+                    
+                    // Print order (optional)
+                    if (confirm('¿Desea imprimir el pedido?')) {
+                        printOrder(order.id);
+                    }
+                } else {
+                    const error = await response.json();
+                    alert('Error al enviar el pedido: ' + JSON.stringify(error));
+                }
+            } catch (error) {
+                console.error('Error submitting order:', error);
+                alert('Error al enviar el pedido');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Enviar Pedido';
+            }
+        }
+        
+        // Print order
+        async function printOrder(orderId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/orders/${orderId}/print_order/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ printer: 'kitchen' })
+                });
+                
+                if (response.ok) {
+                    console.log('Order sent to printer');
+                }
+            } catch (error) {
+                console.error('Error printing order:', error);
+            }
+        }
+    </script>
+</body>
+</html>
