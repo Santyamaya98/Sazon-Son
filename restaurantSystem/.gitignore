@@ -1,0 +1,318 @@
+# Django #
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+static_root/
+
+# Backup files #
+*.bak
+
+# If you are using PyCharm #
+.idea/
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/dictionaries
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.xml
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/gradle.xml
+.idea/**/libraries
+*.iws
+/out/
+
+# Visual Studio Code #
+.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+*.code-workspace
+
+# Sublime Text #
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+
+# Python #
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Jupyter Notebook #
+.ipynb_checkpoints
+
+# pyenv #
+.python-version
+
+# celery #
+celerybeat-schedule.*
+celerybeat.pid
+
+# SageMath parsed files #
+*.sage.py
+
+# Environments #
+.env
+.env.local
+.env.production
+.env.*.local
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+pythonenv*
+activate
+
+# mkdocs documentation #
+/site
+
+# mypy #
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker #
+.pyre/
+
+# pytype static type analyzer #
+.pytype/
+
+# profiling data #
+.prof
+
+# macOS #
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.AppleDouble
+.LSOverride
+Icon
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows #
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux #
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Backup files #
+*.backup
+*.bck
+*.old
+*.orig
+*.original
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Database #
+*.sqlite3
+*.sqlite3-journal
+*.db
+migrations/
+
+# Don't ignore migrations folder structure
+!*/migrations/
+!*/migrations/__init__.py
+
+# Testing #
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.pytest_cache/
+.hypothesis/
+nosetests.xml
+coverage.xml
+test-results/
+tests/fixtures/
+tests/test_*.py
+
+# Sphinx documentation #
+docs/_build/
+docs/_static/
+docs/_templates/
+
+# Flask stuff #
+instance/
+.webassets-cache
+.scrapy
+
+# Django stuff #
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+/static/
+/media/
+staticfiles/
+
+# Security #
+*.pem
+*.key
+*.crt
+*.cert
+secrets.json
+secret_key.txt
+
+# Package files #
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Node (if using for frontend) #
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+.pnp
+.pnp.js
+.yarn/
+
+# Frontend build files #
+frontend/build/
+frontend/dist/
+build/
+dist/
+*.min.js
+*.min.css
+
+# Logs and databases #
+*.log
+*.sql
+*.sqlite
+logs/
+log/
+
+# OS generated files #
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Raspberry Pi specific #
+*.img
+*.iso
+boot/
+root/
+
+# Custom #
+TODO.txt
+TODO.md
+notes.txt
+notes.md
+.notes
+local_notes/
+private/
+confidential/
+
+# Elastic Beanstalk Files #
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+# Docker #
+.dockerignore
+docker-compose.override.yml
+docker-compose.*.yml
+*.dockerfile
+.docker/
+
+# Ignore specific settings files but keep settings folder #
+restaurant_system/settings/local.py
+restaurant_system/settings/production.py
+restaurant_system/settings/dev.py
+
+# Keep these files #
+!.gitkeep
+!requirements.txt
+!requirements-dev.txt
+!README.md
+!.env.example
+!docker-compose.yml
+!Dockerfile
+!*/migrations/__init__.py
