@@ -1,3 +1,4 @@
+#api/views.py
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -6,14 +7,208 @@ from django.db.models import Q, Sum, Count
 from django.utils import timezone
 from datetime import timedelta
 from menu.models import Category, MenuItem
-from orders.models import Order, OrderItem
+from orders.models import Order, OrderItem, Table
 from .serializer import (
     CategorySerializer, MenuItemSerializer,
     OrderSerializer, OrderCreateSerializer,
     OrderUpdateSerializer, OrderStatusSerializer,
-    OrderItemSerializer
+    OrderItemSerializer, TableSerializer, AddItemsSerializer,
+    OpenTableSerializer, PaymentSerializer
 )
 from .pagination import StandardResultsSetPagination
+
+class TableViewSet(viewsets.ModelViewSet):
+    """Manage restaurant tables"""
+    queryset = Table.objects.all()
+    serializer_class = TableSerializer
+    permission_classes = [AllowAny]
+    
+    @action(detail=True, methods=['post'])
+    def open(self, request, pk=None):
+        """Open a table and start a new order"""
+        table = self.get_object()
+        
+        if table.is_occupied:
+            return Response(
+                {'error': 'Table is already occupied'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        serializer = OpenTableSerializer(data=request.data)
+        if serializer.is_valid():
+            order = table.open_table()
+            
+            # Update order with customer info if provided
+            if serializer.validated_data.get('customer_name'):
+                order.customer_name = serializer.validated_data['customer_name']
+            if serializer.validated_data.get('customer_phone'):
+                order.customer_phone = serializer.validated_data['customer_phone']
+            if serializer.validated_data.get('notes'):
+                order.notes = serializer.validated_data['notes']
+            order.save()
+            
+            return Response(
+                OrderSerializer(order).data,
+                status=status.HTTP_201_CREATED
+            )
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['post'])
+    def close(self, request, pk=None):
+        """Close a table (after payment)"""
+        table = self.get_object()
+        
+        if not table.is_occupied:
+            return Response(
+                {'error': 'Table is not occupied'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if table.current_order and not table.current_order.is_paid:
+            return Response(
+                {'error': 'Order must be paid before closing table'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        table.close_table()
+        
+        return Response(
+            {'status': 'success', 'message': f'Table {table.number} closed'},
+            status=status.HTTP_200_OK
+        )
+    
+    @action(detail=True, methods=['get'])
+    def current_order(self, request, pk=None):
+        """Get current order for a table"""
+        table = self.get_object()
+        
+        if not table.current_order:
+            return Response(
+                {'error': 'No active order for this table'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        return Response(OrderSerializer(table.current_order).data)
+    
+    @action(detail=True, methods=['post'])
+    def add_items(self, request, pk=None):
+        """Add items to the current order of a table"""
+        table = self.get_object()
+        
+        if not table.is_occupied or not table.current_order:
+            return Response(
+                {'error': 'Table has no active order'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        serializer = AddItemsSerializer(data=request.data)
+        if serializer.is_valid():
+            order = table.current_order
+            items_data = serializer.validated_data['items']
+            
+            created_items = []
+            for item_data in items_data:
+                menu_item = MenuItem.objects.get(id=item_data['menu_item_id'])
+                order_item = OrderItem.objects.create(
+                    order=order,
+                    menu_item=menu_item,
+                    quantity=item_data['quantity'],
+                    notes=item_data.get('notes', ''),
+                    unit_price=menu_item.price
+                )
+                created_items.append(order_item)
+                
+                # Send to kitchen immediately
+                self._send_to_kitchen(order_item)
+            
+            order.calculate_total()
+            
+            return Response({
+                'status': 'success',
+                'items_added': OrderItemSerializer(created_items, many=True).data,
+                'order': OrderSerializer(order).data
+            })
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def _send_to_kitchen(self, order_item):
+        """Send item to kitchen printer/display"""
+        # Implement kitchen notification logic here
+        from .utils import print_order_item_to_kitchen
+        try:
+            print_order_item_to_kitchen(order_item)
+        except Exception as e:
+            # Log error but don't fail the request
+            print(f"Failed to print to kitchen: {e}")
+    
+    @action(detail=True, methods=['post'])
+    def request_bill(self, request, pk=None):
+        """Customer requests the bill"""
+        table = self.get_object()
+        
+        if not table.current_order:
+            return Response(
+                {'error': 'No active order for this table'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        order = table.current_order
+        order.request_payment()
+        
+        # Generate bill summary
+        bill_summary = {
+            'order_number': order.order_number,
+            'table': table.number,
+            'items': OrderItemSerializer(
+                order.items.filter(is_cancelled=False),
+                many=True
+            ).data,
+            'total': order.total_amount,
+            'created_at': order.created_at,
+            'duration': str(timezone.now() - order.created_at)
+        }
+        
+        return Response(bill_summary)
+    
+    @action(detail=True, methods=['post'])
+    def process_payment(self, request, pk=None):
+        """Process payment for a table"""
+        table = self.get_object()
+        
+        if not table.current_order:
+            return Response(
+                {'error': 'No active order for this table'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        serializer = PaymentSerializer(data=request.data)
+        if serializer.is_valid():
+            order = table.current_order
+            payment_method = serializer.validated_data['payment_method']
+            
+            # Complete payment
+            order.complete_payment(payment_method)
+            
+            # Generate receipt
+            receipt = {
+                'order_number': order.order_number,
+                'table': table.number,
+                'total': order.total_amount,
+                'payment_method': payment_method,
+                'paid_at': order.closed_at,
+                'change': 0
+            }
+            
+            # Calculate change if cash payment
+            if payment_method == 'cash' and 'amount_received' in serializer.validated_data:
+                amount_received = serializer.validated_data['amount_received']
+                receipt['amount_received'] = amount_received
+                receipt['change'] = amount_received - order.total_amount
+            
+            return Response(receipt)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """Read-only viewset for categories"""

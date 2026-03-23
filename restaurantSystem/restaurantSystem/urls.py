@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+#restaruantSystem/restaurantSystem/urls.py
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -24,7 +25,7 @@ from orders.views import home_view
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home_view, name='home'),
-    path('', include('orders.urls')),
+    path('orders/', include('orders.urls')),
     # Optional: Add a home view
     path('api-auth/', include('rest_framework.urls')),
 ]

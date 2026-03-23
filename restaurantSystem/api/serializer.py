@@ -1,7 +1,26 @@
 from rest_framework import serializers
 from menu.models import Category, MenuItem
-from orders.models import Order, OrderItem
-from decimal import Decimal
+from orders.models import Order, OrderItem, Table
+
+
+class TableSerializer(serializers.ModelSerializer):
+    current_order_number = serializers.CharField(
+        source='current_order.order_number', 
+        read_only=True
+    )
+    current_order_total = serializers.DecimalField(
+        source='current_order.total_amount',
+        max_digits=10,
+        decimal_places=2,
+        read_only=True
+    )
+    
+    class Meta:
+        model = Table
+        fields = [
+            'id', 'number', 'seats', 'is_occupied',
+            'current_order', 'current_order_number', 'current_order_total'
+        ]
 
 class CategorySerializer(serializers.ModelSerializer):
     items_count = serializers.SerializerMethodField()
@@ -125,3 +144,48 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
 
 class OrderStatusSerializer(serializers.Serializer):
     status = serializers.ChoiceField(choices=Order.STATUS_CHOICES)
+
+class AddItemsSerializer(serializers.Serializer):
+    """Serializer for adding items to an existing order"""
+    items = serializers.ListField(
+        child=serializers.DictField(),
+        allow_empty=False
+    )
+    
+    def validate_items(self, value):
+        for item in value:
+            if 'menu_item_id' not in item or 'quantity' not in item:
+                raise serializers.ValidationError(
+                    "Each item must have menu_item_id and quantity"
+                )
+            
+            try:
+                MenuItem.objects.get(id=item['menu_item_id'], is_available=True)
+            except MenuItem.DoesNotExist:
+                raise serializers.ValidationError(
+                    f"Menu item {item['menu_item_id']} not found or not available"
+                )
+            
+            if item['quantity'] < 1:
+                raise serializers.ValidationError("Quantity must be at least 1")
+        
+        return value
+    
+class OpenTableSerializer(serializers.Serializer):
+    """Serializer for opening a table"""
+    customer_name = serializers.CharField(required=False, allow_blank=True)
+    customer_phone = serializers.CharField(required=False, allow_blank=True)
+    notes = serializers.CharField(required=False, allow_blank=True)
+
+class PaymentSerializer(serializers.Serializer):
+    """Serializer for processing payment"""
+    payment_method = serializers.ChoiceField(
+        choices=['cash', 'card', 'transfer'],
+        default='cash'
+    )
+    amount_received = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        required=False
+    )
+    

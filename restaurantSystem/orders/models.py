@@ -1,10 +1,64 @@
+#/orders/models.py
 from django.db import models
 
 # Create your models here.
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.shortcuts import render
+from django.utils import timezone
+
 from decimal import Decimal
 from menu.models import MenuItem
+
+def home_view(request):
+    # Order tables by number numerically
+    all_tables = Table.objects.all().order_by('number')  # ← Add this
+    
+    context = {
+        'all_tables': all_tables,
+    }
+    return render(request, 'templates/orders.html', context)
+
+class Table(models.Model):
+    """Restaurant tables"""
+    number = models.CharField(max_length=10, unique=True)
+    seats = models.IntegerField(default=4)
+    is_occupied = models.BooleanField(default=False)
+    current_order = models.OneToOneField(
+        'Order', 
+        null=True, 
+        blank=True, 
+        on_delete=models.SET_NULL,
+        related_name='active_table'
+    )
+    
+    class Meta:
+        ordering = ['number']
+    
+    def __str__(self):
+        return f"Table {self.number} - {'Occupied' if self.is_occupied else 'Available'}"
+    
+    def open_table(self):
+        """Create a new order for this table"""
+        if not self.is_occupied:
+            order = Order.objects.create(
+                table=self,
+                status='active'
+            )
+            self.current_order = order
+            self.is_occupied = True
+            self.save()
+            return order
+        return self.current_order
+    
+    def close_table(self):
+        """Close the table and finalize order"""
+        if self.current_order:
+            self.current_order.status = 'completed'
+            self.current_order.save()
+        self.is_occupied = False
+        self.current_order = None
+        self.save()
 
 class Order(models.Model):
     """Main order model"""
